@@ -5,6 +5,7 @@ import java.util.Map;
 import com.google.common.collect.Maps;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
@@ -31,10 +32,18 @@ public class PDGameRuleCommand {
 				if (!PDGameRulesMod.isSupported(key)) {
 					return;
 				}
-				literalArgumentBuilder.then(Commands.literal(key.getId())
-						.executes(commandContext -> PDGameRuleCommand.queryRule(commandContext.getSource(), key))
-						.then(type.createArgument("value").executes(commandContext -> PDGameRuleCommand.setRule(commandContext, key)))
-						.then(Commands.literal("clear!").executes(commandContext -> PDGameRuleCommand.clearRule(commandContext, key))));
+				try {
+					RequiredArgumentBuilder<CommandSourceStack, ?> setNode = PDGameRulesMod.getPlatformNode(key, type);
+					if (setNode == null) {
+						setNode = type.createArgument("value");
+					}
+					literalArgumentBuilder.then(Commands.literal(key.getId())
+							.executes(commandContext -> PDGameRuleCommand.queryRule(commandContext.getSource(), key))
+							.then(setNode.executes(commandContext -> PDGameRuleCommand.setRule(commandContext, key)))
+							.then(Commands.literal("clear!").executes(commandContext -> PDGameRuleCommand.clearRule(commandContext, key))));
+				} catch (Exception e) {
+					PDGameRulesMod.LOGGER.error("Failed to register command for " + key.getId(), e);
+				}
 			}
 
 		});
@@ -45,6 +54,7 @@ public class PDGameRuleCommand {
 			CommandContext<CommandSourceStack> commandContext, GameRules.Key<T> key) throws CommandSyntaxException {
 		CommandSourceStack commandSourceStack = commandContext.getSource();
 		checkOverworld(commandSourceStack, key);
+		//noinspection unchecked
 		T value = ((GameRulesValueAccess<T>) commandSourceStack.getLevel().getGameRules().getRule(key)).getType().createRule();
 		// though the PDGameRules object will be replaced immediately, we still need to check if the value is valid
 		value.setFromArgument(commandContext, "value");
