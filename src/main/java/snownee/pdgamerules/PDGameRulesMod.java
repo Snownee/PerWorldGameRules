@@ -6,8 +6,10 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import com.google.common.collect.Sets;
+import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.logging.LogUtils;
 
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.GameRules;
 import net.minecraftforge.common.MinecraftForge;
@@ -64,4 +66,19 @@ public class PDGameRulesMod {
 		iterateGeneration();
 	}
 
+	@SuppressWarnings("unchecked")
+	public static <T extends GameRules.Value<T>, E extends Enum<E>> RequiredArgumentBuilder<CommandSourceStack, ?> getPlatformNode(
+			GameRules.Key<T> key,
+			GameRules.Type<T> type) {
+//		GameRulesTypeAccess<T> typeAccess = (GameRulesTypeAccess<T>) type;
+//		if (typeAccess.getArgument() == null && type.createRule() instanceof EnumRule<?> wildcardRule) {
+//			EnumRule<E> rule = (EnumRule<E>) wildcardRule;
+//			for (E enumConstant : rule.getEnumClass().getEnumConstants()) {
+//				if (!rule.supports(enumConstant)) {
+//					continue;
+//				}
+//			}
+//		}
+		return null;
+	}
 }
